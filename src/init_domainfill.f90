@@ -205,13 +205,16 @@ subroutine init_domainfill
               if (ztra1(numpart+jj).gt.height(nz)-0.5) &
                    ztra1(numpart+jj)=height(nz)-0.5
 
-
 ! Interpolate PV to the particle position
 !****************************************
               ixm=int(xtra1(numpart+jj))
               jym=int(ytra1(numpart+jj))
               ixp=ixm+1
               jyp=jym+1
+              if (jyp.gt.180) then
+                 write (*,*) 'init_domainfill, over: ',jyp,jym,ytra1(numpart+jj),jy,ran1(idummy),ny
+                 jyp=jym
+              endif
               ddx=xtra1(numpart+jj)-real(ixm)
               ddy=ytra1(numpart+jj)-real(jym)
               rddx=1.-ddx

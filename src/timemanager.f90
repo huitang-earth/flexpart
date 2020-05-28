@@ -429,7 +429,9 @@ subroutine timemanager(metdata_format)
         endif
         if ((iout.eq.4).or.(iout.eq.5)) call plumetraj(itime)
         if ((iflux.eq.1).and.(lnetcdfout.eq.0)) call fluxoutput(itime)
+#ifdef USE_NCF
         if ((iflux.eq.1).and.(lnetcdfout.eq.1)) call fluxoutput_netcdf(itime)
+#endif
         write(*,45) itime,numpart,gridtotalunc,wetgridtotalunc,drygridtotalunc
  
         !CGZ-lifetime: output species lifetime

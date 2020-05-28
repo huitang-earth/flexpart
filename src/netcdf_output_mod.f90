@@ -32,7 +32,7 @@ module netcdf_output_mod
                        xpoint1,ypoint1,xpoint2,ypoint2,zpoint1,zpoint2,npart,xmass
   use outg_mod,  only: outheight,oroout,densityoutgrid,factor3d,volume,&
                        wetgrid,wetgridsigma,drygrid,drygridsigma,grid,gridsigma,&
-                       area,arean,volumen, orooutn, areaeast
+                       area,arean,volumen, orooutn, areaeast, areanorth
   use par_mod,   only: dep_prec, sp, dp, maxspec, maxreceptor, nclassunc,&
                        unitoutrecept,unitoutreceptppt, nxmax,unittmp
   use com_mod,   only: path,length,ldirect,bdate,ibdate,ibtime,iedate,ietime, &
@@ -1565,7 +1565,87 @@ subroutine fluxoutput_netcdf(itime)
 
         call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
             /areaeast(0:numxgrid-1,0:numygrid-1,1:numzgrid)/loutstep,&
-           (/ 1,1,1,tpointer,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+
+ ! West Flux
+        call nf90_err(nf90_def_var(ncid,'flux_west_'//anspec, nf90_float, dIDs, &
+             fluxID))
+
+        do jy=0,numygrid-1
+          do ix=0,numxgrid-1
+            do kz=1, numzgrid
+               grid(ix,jy,kz)=flux(2,ix,jy,kz,ks,kp,nage) 
+            end do
+          end do
+        end do
+
+        call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
+            /areaeast(0:numxgrid-1,0:numygrid-1,1:numzgrid)/loutstep,&
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+
+ ! North Flux
+        call nf90_err(nf90_def_var(ncid,'flux_north_'//anspec, nf90_float, dIDs, &
+             fluxID))
+
+        do jy=0,numygrid-1
+          do ix=0,numxgrid-1
+            do kz=1, numzgrid
+               grid(ix,jy,kz)=flux(4,ix,jy,kz,ks,kp,nage) 
+            end do
+          end do
+        end do
+
+        call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
+            /areanorth(0:numxgrid-1,0:numygrid-1,1:numzgrid)/loutstep,&
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+
+ ! South Flux
+        call nf90_err(nf90_def_var(ncid,'flux_south_'//anspec, nf90_float, dIDs, &
+             fluxID))
+
+        do jy=0,numygrid-1
+          do ix=0,numxgrid-1
+            do kz=1, numzgrid
+               grid(ix,jy,kz)=flux(3,ix,jy,kz,ks,kp,nage) 
+            end do
+          end do
+        end do
+
+        call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
+            /areanorth(0:numxgrid-1,0:numygrid-1,1:numzgrid)/loutstep,&
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+
+ ! Up Flux
+        call nf90_err(nf90_def_var(ncid,'flux_up_'//anspec, nf90_float, dIDs, &
+             fluxID))
+
+        do jy=0,numygrid-1
+          do ix=0,numxgrid-1
+            do kz=1, numzgrid
+               grid(ix,jy,kz)=flux(5,ix,jy,kz,ks,kp,nage)/area(ix,jy)
+            end do
+          end do
+        end do
+
+        call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
+            /loutstep,&
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+
+ ! Down Flux
+        call nf90_err(nf90_def_var(ncid,'flux_down_'//anspec, nf90_float, dIDs, &
+             fluxID))
+
+        do jy=0,numygrid-1
+          do ix=0,numxgrid-1
+            do kz=1, numzgrid
+               grid(ix,jy,kz)=flux(6,ix,jy,kz,ks,kp,nage)/area(ix,jy)
+            end do
+          end do
+        end do
+
+        call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
+            /loutstep,&
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
 
       end do
     end do

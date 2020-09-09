@@ -1654,6 +1654,26 @@ subroutine fluxoutput_netcdf(itime)
   ! Close netCDF file
   call nf90_err(nf90_close(ncid))
 
+  ! Reinitialization of grid
+  !*************************
+
+  do ks=1,nspec
+    do kp=1,maxpointspec_act
+      do jy=0,numygrid-1
+        do ix=0,numxgrid-1
+          do kz=1,numzgrid
+            do nage=1,nageclass
+              do i=1,6
+                flux(i,ix,jy,kz,ks,kp,nage)=0.
+              end do
+            end do
+          end do
+        end do
+      end do
+    end do
+  end do
+
+
 end subroutine fluxoutput_netcdf
 
 end module netcdf_output_mod

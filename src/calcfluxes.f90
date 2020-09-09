@@ -60,11 +60,13 @@ subroutine calcfluxes(nage,jpart,xold,yold,zold)
   if ((ixave.ge.0).and.(jyave.ge.0).and.(ixave.le.numxgrid-1).and. &
        (jyave.le.numygrid-1)) then
     do kz=1,numzgrid                ! determine height of cell
-      if (outheighthalf(kz).gt.zold) goto 11
+!      if (outheighthalf(kz).gt.zold) goto 11
+      if (outheight(kz).gt.zold) goto 11 !sec, use upper layer instead of mid layer
     end do
 11   k1=min(numzgrid,kz)
     do kz=1,numzgrid                ! determine height of cell
-      if (outheighthalf(kz).gt.ztra1(jpart)) goto 21
+!      if (outheighthalf(kz).gt.ztra1(jpart)) goto 21
+      if (outheight(kz).gt.ztra1(jpart)) goto 21
     end do
 21   k2=min(numzgrid,kz)
 
@@ -92,8 +94,10 @@ subroutine calcfluxes(nage,jpart,xold,yold,zold)
   ! 1) Particle does not cross domain boundary
 
     if (abs(xold-xtra1(jpart)).lt.real(nx)/2.) then
-      ix1=int((xold*dx+xoutshift)/dxout+0.5)
-      ix2=int((xtra1(jpart)*dx+xoutshift)/dxout+0.5)
+      ix1=int((xold*dx+xoutshift)/dxout)              ! flux throught the western boundary (sec)
+      ix2=int((xtra1(jpart)*dx+xoutshift)/dxout)      ! flux throught the western boundary (sec)
+!      ix1=int((xold*dx+xoutshift)/dxout+0.5) 
+!      ix2=int((xtra1(jpart)*dx+xoutshift)/dxout+0.5)
       do k=1,nspec
         do ix=ix1,ix2-1
           if ((ix.ge.0).and.(ix.le.numxgrid-1)) then
@@ -141,8 +145,10 @@ subroutine calcfluxes(nage,jpart,xold,yold,zold)
 
   if ((kzave.le.numzgrid).and.(ixave.ge.0).and. &
        (ixave.le.numxgrid-1)) then
-    jy1=int((yold*dy+youtshift)/dyout+0.5)
-    jy2=int((ytra1(jpart)*dy+youtshift)/dyout+0.5)
+    jy1=int((yold*dy+youtshift)/dyout)         ! flux throught the southern boundary (sec)
+    jy2=int((ytra1(jpart)*dy+youtshift)/dyout) ! flux throught the southern boundary (sec)
+!    jy1=int((yold*dy+youtshift)/dyout+0.5)
+!    jy2=int((ytra1(jpart)*dy+youtshift)/dyout+0.5)
 
     do k=1,nspec
       do jy=jy1,jy2-1

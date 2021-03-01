@@ -38,7 +38,7 @@ subroutine readspecies(id_spec,pos_spec)
 
   implicit none
 
-  integer :: i, pos_spec,j
+  integer :: i, pos_spec,j,icheck_dow_hour
   integer :: idow,ihour,id_spec
   character(len=3) :: aspecnumb
   logical :: spec_found
@@ -225,13 +225,17 @@ subroutine readspecies(id_spec,pos_spec)
     ohdconst(pos_spec)=pohdconst
     ohnconst(pos_spec)=pohnconst
 
+
+    icheck_dow_hour=0
     do j=1,24     ! 24 hours, starting with 0-1 local time
       area_hour(pos_spec,j)=parea_hour(j)
       point_hour(pos_spec,j)=ppoint_hour(j)
+      if (parea_hour(j).ne.1 .or. ppoint_hour(j).ne.1) icheck_dow_hour=1
     end do
     do j=1,7      ! 7 days of the week, starting with Monday
       area_dow(pos_spec,j)=parea_dow(j)
       point_dow(pos_spec,j)=ppoint_dow(j)
+      if (parea_dow(j).ne.1 .or. ppoint_dow(j).ne.1) icheck_dow_hour=1
     end do
 
   endif
@@ -353,6 +357,11 @@ subroutine readspecies(id_spec,pos_spec)
   endif
 20 continue
 
+  if ((icheck_dow_hour.eq.1).and.(ldirect.lt.0)) then
+    write(*,*) '#### FLEXPART MODEL WARNING                     ####'
+    write(*,*) '#### The variation for an emission release      ####'
+    write(*,*) '#### will have no effect in backward mode       ####'  
+  endif
 
 22 close(unitspecies)
 

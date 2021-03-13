@@ -74,12 +74,12 @@ subroutine gridcheck_gfs
   integer :: ix,jy,i,ifn,ifield,j,k,iumax,iwmax,numskip
   real :: sizesouth,sizenorth,xauxa,pint
   real :: akm_usort(nwzmax)
-  real,parameter :: eps=0.0001
+  real,parameter :: eps=spacing(2.0_4*360.0_4) 
 
   ! NCEP GFS
   real :: pres(nwzmax), help
 
-  integer :: i179,i180,i181
+  integer :: i180
 
   ! VARIABLES AND ARRAYS NEEDED FOR GRIB DECODING
 
@@ -223,9 +223,9 @@ subroutine gridcheck_gfs
 
   nxfield=isec2(2)
   ny=isec2(3)
-  if((abs(xaux1).lt.eps).and.(xaux2.ge.359)) then ! NCEP DATA FROM 0 TO
-    xaux1=-179.0                             ! 359 DEG EAST ->
-    xaux2=-179.0+360.-360./real(nxfield)    ! TRANSFORMED TO -179
+  if((abs(xaux1).lt.eps).and.(xaux2.ge.359.)) then ! NCEP DATA FROM 0 TO
+    xaux1=-180.0                             ! 359 DEG EAST ->
+    xaux2=-180.0+360.-360./real(nxfield)    ! TRANSFORMED TO -179
   endif                                      ! TO 180 DEG EAST
   if (xaux1.gt.180) xaux1=xaux1-360.0
   if (xaux2.gt.180) xaux2=xaux2-360.0
@@ -304,13 +304,7 @@ subroutine gridcheck_gfs
   endif
 
 
-  i179=nint(179./dx)
-  if (dx.lt.0.7) then
-    i180=nint(180./dx)+1    ! 0.5 deg data
-  else
-    i180=nint(179./dx)+1    ! 1 deg data
-  endif
-  i181=i180+1
+  i180=nint(180./dx)    ! 0.5 deg data
 
 
   ! NCEP TERRAIN
@@ -320,12 +314,12 @@ subroutine gridcheck_gfs
     do jy=0,ny-1
       do ix=0,nxfield-1
         help=zsec4(nxfield*(ny-jy-1)+ix+1)
-        if(ix.le.i180) then
-          oro(i179+ix,jy)=help
-          excessoro(i179+ix,jy)=0.0 ! ISOBARIC SURFACES: SUBGRID TERRAIN DISREGARDED
+        if(ix.lt.i180) then
+          oro(i180+ix,jy)=help
+          excessoro(i180+ix,jy)=0.0 ! ISOBARIC SURFACES: SUBGRID TERRAIN DISREGARDED
         else
-          oro(ix-i181,jy)=help
-          excessoro(ix-i181,jy)=0.0 ! ISOBARIC SURFACES: SUBGRID TERRAIN DISREGARDED
+          oro(ix-i180,jy)=help
+          excessoro(ix-i180,jy)=0.0 ! ISOBARIC SURFACES: SUBGRID TERRAIN DISREGARDED
         endif
       end do
     end do
@@ -338,10 +332,10 @@ subroutine gridcheck_gfs
     do jy=0,ny-1
       do ix=0,nxfield-1
         help=zsec4(nxfield*(ny-jy-1)+ix+1)
-        if(ix.le.i180) then
-          lsm(i179+ix,jy)=help
+        if(ix.lt.i180) then
+          lsm(i180+ix,jy)=help
         else
-          lsm(ix-i181,jy)=help
+          lsm(ix-i180,jy)=help
         endif
       end do
     end do
@@ -412,7 +406,7 @@ subroutine gridcheck_gfs
   if (lroot) then
     write(*,*)
     write(*,*)
-    write(*,'(a,2i7)') 'Vertical levels in NCEP data: ', &
+  write(*,'(a,2i7)') '# of vertical levels in NCEP data: ', &
          nuvz,nwz
     write(*,*)
     write(*,'(a)') 'Mother domain:'

@@ -13,7 +13,11 @@ real function ew(x)
   real :: x, y, a, c, d
 
   ew=0.
-  if(x.le.0.) stop 'sorry: t not in [k]'
+  if(x.le.0.) then
+    write(*,*) 'in ew.f90: x=', x
+    stop 'sorry: t not in [k]'
+  end if
+
   y=373.16/x
   a=-7.90298*(y-1.)
   a=a+(5.02808*0.43429*alog(y))

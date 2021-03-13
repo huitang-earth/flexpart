@@ -140,11 +140,15 @@ subroutine richardson(psurf,ust,ttlev,qvlev,ulev,vlev,nuvz, &
     thetaold=theta
     zold=z
   end do
-  k=k-1 ! ESO: make sure k <= nuvz (ticket #139)
+  ! k=k-1 ! ESO: make sure k <= nuvz (ticket #139)
 20   continue
 
   ! Determine Richardson number between the critical levels
   !********************************************************
+  ! JMA: It may happen that k >= nuvz:
+  ! JMA: In that case: k is set to nuvz 
+
+  if (k .gt. nuvz) k = nuvz ! JMA
 
   zl1=zold
   theta1=thetaold

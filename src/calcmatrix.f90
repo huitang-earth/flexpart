@@ -70,8 +70,8 @@ subroutine calcmatrix(lconv,delt,cbmf,metdata_format)
   do kuvz = 2,nuvz
     k = kuvz-1
     if (metdata_format.eq.GRIBFILE_CENTRE_ECMWF) then
-    pconv(k) = (akz(kuvz) + bkz(kuvz)*psconv)
-    phconv(kuvz) = (akm(kuvz) + bkm(kuvz)*psconv)
+      pconv(k) = (akz(kuvz) + bkz(kuvz)*psconv)
+      phconv(kuvz) = (akm(kuvz) + bkm(kuvz)*psconv)
     else
       phconv(kuvz) =  0.5*(pconv(kuvz)+pconv(k))
     endif

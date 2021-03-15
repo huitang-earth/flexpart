@@ -66,24 +66,28 @@ subroutine calcmatrix(lconv,delt,cbmf,metdata_format)
 
 
   phconv(1) = psconv
-  ! Emanuel subroutine needs pressure in hPa, therefore convert all pressures
-  do kuvz = 2,nuvz
-    k = kuvz-1
-    if (metdata_format.eq.GRIBFILE_CENTRE_ECMWF) then
+! Emanuel subroutine needs pressure in hPa, therefore convert all pressures
+  if (metdata_format.eq.GRIBFILE_CENTRE_ECMWF) then
+    do kuvz = 2,nuvz
+      k = kuvz-1
       pconv(k) = (akz(kuvz) + bkz(kuvz)*psconv)
       phconv(kuvz) = (akm(kuvz) + bkm(kuvz)*psconv)
-    else
-      phconv(kuvz) =  0.5*(pconv(kuvz)+pconv(k))
-    endif
-    dpr(k) = phconv(k) - phconv(kuvz)
-    qsconv(k) = f_qvsat( pconv(k), tconv(k) )
-
-  ! initialize mass fractions
-    do kk=1,nconvlev
-      fmassfrac(k,kk)=0.
+      dpr(k) = phconv(k) - phconv(kuvz)
+      qsconv(k) = f_qvsat( pconv(k), tconv(k) )
     end do
-  end do
+  else
+! JMA / SH Bugfix phconv was set in loop with access to undefined pconv(nuvz)
+    phconv(2:nuvz-1) = 0.5*(pconv(2:nuvz-1)+pconv(1:nuvz-2))
+    phconv(nuvz) = pconv(nuvz-1)
+    dpr(1:nuvz-1) = phconv(1:nuvz-1)-phconv(2:nuvz)
 
+    do k = 1,nuvz-1
+      qsconv(k) = f_qvsat( pconv(k), tconv(k) )
+    end do
+  end if
+    
+! initialize mass fractions
+  fmassfrac(1:nuvz-1,1:nconvlev)=0.0
 
   !note that Emanuel says it is important
   !a. to set this =0. every grid point
@@ -92,48 +96,48 @@ subroutine calcmatrix(lconv,delt,cbmf,metdata_format)
   ! CALL CONVECTION
   !******************
 
-    cbmfold = cbmf
-  ! Convert pressures to hPa, as required by Emanuel scheme
-  !********************************************************
+  cbmfold = cbmf
+! Convert pressures to hPa, as required by Emanuel scheme
+!********************************************************
 !!$    do k=1,nconvlev     !old
-    do k=1,nconvlev+1      !bugfix
-      pconv_hpa(k)=pconv(k)/100.
-      phconv_hpa(k)=phconv(k)/100.
+  do k=1,nconvlev+1      !bugfix
+    pconv_hpa(k)=pconv(k)/100.
+    phconv_hpa(k)=phconv(k)/100.
+  end do
+  phconv_hpa(nconvlev+1)=phconv(nconvlev+1)/100.
+  call convect(nconvlevmax, nconvlev, delt, iflag, &
+       precip, wd, tprime, qprime, cbmf)
+
+! do not update fmassfrac and cloudbase massflux
+! if no convection takes place or
+! if a CFL criterion is violated in convect43c.f
+  if (iflag .ne. 1 .and. iflag .ne. 4) then
+    cbmf=cbmfold
+    goto 200
+  endif
+
+! do not update fmassfrac and cloudbase massflux
+! if the old and the new cloud base mass
+! fluxes are zero
+  if (cbmf.le.0..and.cbmfold.le.0.) then
+    cbmf=cbmfold
+    goto 200
+  endif
+
+! Update fmassfrac
+! account for mass displaced from level k to level k
+
+  lconv = .true.
+  do k=1,nconvtop
+    rlevmass = dpr(k)/ga
+    summe = 0.
+    do kk=1,nconvtop
+      fmassfrac(k,kk) = delt*fmass(k,kk)
+      summe = summe + fmassfrac(k,kk)
     end do
-    phconv_hpa(nconvlev+1)=phconv(nconvlev+1)/100.
-    call convect(nconvlevmax, nconvlev, delt, iflag, &
-         precip, wd, tprime, qprime, cbmf)
+    fmassfrac(k,k)=fmassfrac(k,k) + rlevmass - summe
+  end do
 
-  ! do not update fmassfrac and cloudbase massflux
-  ! if no convection takes place or
-  ! if a CFL criterion is violated in convect43c.f
-   if (iflag .ne. 1 .and. iflag .ne. 4) then
-     cbmf=cbmfold
-     goto 200
-   endif
-
-  ! do not update fmassfrac and cloudbase massflux
-  ! if the old and the new cloud base mass
-  ! fluxes are zero
-   if (cbmf.le.0..and.cbmfold.le.0.) then
-     cbmf=cbmfold
-     goto 200
-   endif
-
-  ! Update fmassfrac
-  ! account for mass displaced from level k to level k
-
-   lconv = .true.
-    do k=1,nconvtop
-      rlevmass = dpr(k)/ga
-      summe = 0.
-      do kk=1,nconvtop
-        fmassfrac(k,kk) = delt*fmass(k,kk)
-        summe = summe + fmassfrac(k,kk)
-      end do
-      fmassfrac(k,k)=fmassfrac(k,k) + rlevmass - summe
-    end do
-
-200   continue
+200 continue
 
 end subroutine calcmatrix

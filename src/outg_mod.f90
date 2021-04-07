@@ -1,3 +1,6 @@
+! SPDX-FileCopyrightText: FLEXPART 1998-2019, see flexpart_license.txt
+! SPDX-License-Identifier: GPL-3.0-or-later
+
 module outg_mod
 
   use par_mod, only: dep_prec, sp
@@ -8,6 +11,8 @@ module outg_mod
   real,allocatable, dimension (:) :: outheighthalf
   real,allocatable, dimension (:,:) :: oroout
   real,allocatable, dimension (:,:) :: orooutn
+  real,allocatable, dimension (:,:) :: t0out
+  real,allocatable, dimension (:,:) :: p0out
   real,allocatable, dimension (:,:) :: area
   real,allocatable, dimension (:,:) :: arean
   real,allocatable, dimension (:,:,:) :: volume

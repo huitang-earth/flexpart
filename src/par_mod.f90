@@ -1,3 +1,6 @@
+! SPDX-FileCopyrightText: FLEXPART 1998-2019, see flexpart_license.txt
+! SPDX-License-Identifier: GPL-3.0-or-later
+
 !*******************************************************************************
 !   Include file for calculation of particle trajectories (Program FLEXPART)   *
 !        This file contains the parameter statements used in FLEXPART          *
@@ -28,6 +31,13 @@ module par_mod
   !****************************************************************
 
   integer,parameter :: dep_prec=sp
+
+  !***********************************************************
+  ! Additional output of lowest level pressure and temperature
+  ! (for netcdf output)
+  !***********************************************************
+  logical,parameter :: write_p0t0 = .false.
+
 
   !****************************************************************
   ! Set to F to disable use of kernel for concentrations/deposition
@@ -202,7 +212,7 @@ module par_mod
   !**************************************************
 
   integer,parameter :: maxpart=100000
-  integer,parameter :: maxspec=1
+  integer,parameter :: maxspec=6
 
   real,parameter :: minmass=0.0001
 

@@ -555,7 +555,8 @@ subroutine timemanager(metdata_format)
           outnum=0.
         endif
         if ((iout.eq.4).or.(iout.eq.5)) call plumetraj(itime)
-        if (iflux.eq.1) call fluxoutput(itime)
+        if ((iflux.eq.1).and.(lnetcdfout.eq.0)) call fluxoutput(itime)
+        if ((iflux.eq.1).and.(lnetcdfout.eq.1)) call fluxoutput_netcdf(itime)
         if (mp_measure_time) call mpif_mtime('iotime',1)
 
 

@@ -84,7 +84,7 @@ subroutine timemanager(metdata_format)
   use com_mod
 #ifdef USE_NCF
   use netcdf_output_mod, only: concoutput_netcdf,concoutput_nest_netcdf,&
-       &concoutput_surf_netcdf,concoutput_surf_nest_netcdf
+       &concoutput_surf_netcdf,concoutput_surf_nest_netcdf,fluxoutput_netcdf
 #endif
 
   implicit none
@@ -432,7 +432,10 @@ subroutine timemanager(metdata_format)
           outnum=0.
         endif
         if ((iout.eq.4).or.(iout.eq.5)) call plumetraj(itime)
-        if (iflux.eq.1) call fluxoutput(itime)
+        if ((iflux.eq.1).and.(lnetcdfout.eq.0)) call fluxoutput(itime)
+#ifdef USE_NCF
+        if ((iflux.eq.1).and.(lnetcdfout.eq.1)) call fluxoutput_netcdf(itime)
+#endif
         write(*,45) itime,numpart,gridtotalunc,wetgridtotalunc,drygridtotalunc
  
         !CGZ-lifetime: output species lifetime

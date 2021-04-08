@@ -35,11 +35,11 @@ module netcdf_output_mod
                        xpoint1,ypoint1,xpoint2,ypoint2,zpoint1,zpoint2,npart,xmass
   use outg_mod,  only: outheight,oroout,densityoutgrid,factor3d,volume,&
                        wetgrid,wetgridsigma,drygrid,drygridsigma,grid,gridsigma,&
-                       area,arean,volumen, orooutn, p0out, t0out
+                       area,arean,volumen, orooutn, areaeast, areanorth, p0out, t0out
   use par_mod,   only: dep_prec, sp, dp, maxspec, maxreceptor, nclassunc,&
                        unitoutrecept,unitoutreceptppt, nxmax,unittmp, &
                        write_p0t0
-  use com_mod,   only: path,length,ldirect,ibdate,ibtime,iedate,ietime, &
+  use com_mod,   only: path,length,ldirect,bdate,ibdate,ibtime,iedate,ietime, &
                        loutstep,loutaver,loutsample,outlon0,outlat0,&
                        numxgrid,numygrid,dxout,dyout,numzgrid, height, &
                        outlon0n,outlat0n,dxoutn,dyoutn,numxgridn,numygridn, &
@@ -66,7 +66,7 @@ module netcdf_output_mod
   private
 
   public :: writeheader_netcdf,concoutput_surf_nest_netcdf,concoutput_netcdf,&
-       &concoutput_nest_netcdf,concoutput_surf_netcdf
+       &concoutput_nest_netcdf,concoutput_surf_netcdf,fluxoutput_netcdf
 
 !  include 'netcdf.inc'
 
@@ -1518,6 +1518,259 @@ subroutine concoutput_surf_nest_netcdf(itime,outnum)
   print*,'Netcdf output for surface only not yet implemented'
 
 end subroutine concoutput_surf_nest_netcdf
+
+subroutine fluxoutput_netcdf(itime)
+     
+  !                            i
+  !*****************************************************************************
+  !                                                                            *
+  !     Output of the gridded fluxes.                                          *
+  !     Eastward, westward, northward, southward, upward and downward gross    *
+  !     fluxes are written to output file in either sparse matrix or grid dump *
+  !     format, whichever is more efficient.                                   *
+  !                                                                            *
+  !     Author: A. Stohl                                                       *
+  !                                                                            *
+  !     04 April 2000                                                          *
+  !     netcdfoutput S. Eckhardt, 2020                                         *
+  !                                                                            *
+  !*****************************************************************************
+
+   use flux_mod
+
+  implicit none
+
+  real(kind=dp) :: jul
+  integer :: itime,ix,jy,kz,ks,nage,jjjjmmdd,ihmmss,kp,i
+  
+  character(len=255) :: ncfname
+  character :: adate*8,atime*6,timeunit*32,anspec*3
+
+  integer :: ncid 
+  integer :: timeDimID, latDimID, lonDimID, levDimID
+  integer :: nspecDimID, npointDimID, nageclassDimID, ncharDimID, pointspecDimID
+  integer :: tID, lonID, latID, levID, lageID, fluxID
+  integer, dimension(6)       :: dIDs
+  integer :: cache_size
+  real, allocatable, dimension(:) :: coord
+
+
+  ! Determine current calendar date, needed for the file name
+  !**********************************************************
+
+  jul=bdate+real(itime,kind=dp)/86400._dp
+  call caldate(jul,jjjjmmdd,ihmmss)
+  write(adate,'(i8.8)') jjjjmmdd
+  write(atime,'(i6.6)') ihmmss
+
+  ncfname=path(2)(1:length(2))//'grid_flux_'//adate// &
+       atime//'.nc'
+
+  ! setting cache size in bytes. It is set to 4 times the largest data block that is written
+  !   size_type x nx x ny x nz
+  ! create file
+
+  cache_size = 16 * numxgrid * numygrid * numzgrid
+  call nf90_err(nf90_create(trim(ncfname), cmode = nf90_hdf5, ncid = ncid, &
+    cache_size = cache_size))  
+
+  ! create dimensions:
+  !*************************
+  ! time
+  call nf90_err(nf90_def_dim(ncid, 'time', nf90_unlimited, timeDimID))
+  timeunit = 'seconds since '//adate(1:4)//'-'//adate(5:6)// &
+     '-'//adate(7:8)//' '//atime(1:2)//':'//atime(3:4)
+
+  call nf90_err(nf90_def_dim(ncid, 'longitude', numxgrid, lonDimID))
+  call nf90_err(nf90_def_dim(ncid, 'latitude', numygrid, latDimID))
+  call nf90_err(nf90_def_dim(ncid, 'height', numzgrid, levDimID))
+  call nf90_err(nf90_def_dim(ncid, 'numspec', nspec, nspecDimID))
+  call nf90_err(nf90_def_dim(ncid, 'pointspec', maxpointspec_act, pointspecDimID))
+  call nf90_err(nf90_def_dim(ncid, 'nageclass', nageclass, nageclassDimID))
+  call nf90_err(nf90_def_dim(ncid, 'nchar', 45, ncharDimID))
+  call nf90_err(nf90_def_dim(ncid, 'numpoint', numpoint, npointDimID))
+
+
+  ! create variables
+  !*************************
+
+  ! time
+  call nf90_err(nf90_def_var(ncid, 'time', nf90_int, (/ timeDimID /), tID))
+  call nf90_err(nf90_put_att(ncid, tID, 'units', timeunit))
+  call nf90_err(nf90_put_att(ncid, tID, 'calendar', 'proleptic_gregorian'))
+  timeID = tID
+
+  ! lon
+  call nf90_err(nf90_def_var(ncid, 'longitude', nf90_float, (/ lonDimID /), lonID))
+  call nf90_err(nf90_put_att(ncid, lonID, 'long_name', 'longitude in degree east'))
+  call nf90_err(nf90_put_att(ncid, lonID, 'axis', 'Lon'))
+  call nf90_err(nf90_put_att(ncid, lonID, 'units', 'degrees_east'))
+  call nf90_err(nf90_put_att(ncid, lonID, 'standard_name', 'grid_longitude'))
+  call nf90_err(nf90_put_att(ncid, lonID, 'description', 'grid cell centers'))
+
+  ! lat
+  call nf90_err(nf90_def_var(ncid, 'latitude', nf90_float, (/ latDimID /), latID))
+  call nf90_err(nf90_put_att(ncid, latID, 'long_name', 'latitude in degree north'))
+  call nf90_err(nf90_put_att(ncid, latID, 'axis', 'Lat'))
+  call nf90_err(nf90_put_att(ncid, latID, 'units', 'degrees_north'))
+  call nf90_err(nf90_put_att(ncid, latID, 'standard_name', 'grid_latitude'))
+  call nf90_err(nf90_put_att(ncid, latID, 'description', 'grid cell centers'))
+
+  ! height
+  call nf90_err(nf90_def_var(ncid, 'height', nf90_float, (/ levDimID /), levID))
+  call nf90_err(nf90_put_att(ncid, levID, 'units', 'meters'))
+  call nf90_err(nf90_put_att(ncid, levID, 'positive', 'up'))
+  call nf90_err(nf90_put_att(ncid, levID, 'standard_name', 'height'))
+
+  if (.not.allocated(coord)) allocate(coord(numxgrid)) 
+  do i = 1,numxgrid
+     coord(i) = outlon0 + (i-0.5)*dxout
+  enddo
+  call nf90_err(nf90_put_var(ncid, lonID, coord(1:numxgrid)))
+  deallocate(coord)
+  if (.not.allocated(coord)) allocate(coord(numygrid))
+  do i = 1,numygrid
+     coord(i) = outlat0 + (i-0.5)*dyout
+  enddo
+  call nf90_err(nf90_put_var(ncid, latID, coord(1:numygrid)))
+  deallocate(coord)
+  call nf90_err(nf90_put_var(ncid, levID, outheight(1:numzgrid)))
+
+  ! write time, one field per time - different to the others!
+  call nf90_err(nf90_put_var( ncid, timeID, itime, (/ 1 /)))
+  
+  dIDs = (/ londimid, latdimid, levdimid, timedimid, pointspecdimid, nageclassdimid /)
+
+  do ks=1,nspec
+    do kp=1,maxpointspec_act
+      do nage=1,nageclass
+ 
+         write(anspec,'(i3.3)') ks
+
+ ! East Flux
+        call nf90_err(nf90_def_var(ncid,'flux_east_'//anspec, nf90_float, dIDs, &
+             fluxID))
+
+        do jy=0,numygrid-1
+          do ix=0,numxgrid-1
+            do kz=1, numzgrid
+               grid(ix,jy,kz)=flux(1,ix,jy,kz,ks,kp,nage) 
+            end do
+          end do
+        end do
+
+        call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
+            /areaeast(0:numxgrid-1,0:numygrid-1,1:numzgrid)/loutstep,&
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+
+ ! West Flux
+        call nf90_err(nf90_def_var(ncid,'flux_west_'//anspec, nf90_float, dIDs, &
+             fluxID))
+
+        do jy=0,numygrid-1
+          do ix=0,numxgrid-1
+            do kz=1, numzgrid
+               grid(ix,jy,kz)=flux(2,ix,jy,kz,ks,kp,nage) 
+            end do
+          end do
+        end do
+
+        call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
+            /areaeast(0:numxgrid-1,0:numygrid-1,1:numzgrid)/loutstep,&
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+
+ ! North Flux
+        call nf90_err(nf90_def_var(ncid,'flux_north_'//anspec, nf90_float, dIDs, &
+             fluxID))
+
+        do jy=0,numygrid-1
+          do ix=0,numxgrid-1
+            do kz=1, numzgrid
+               grid(ix,jy,kz)=flux(4,ix,jy,kz,ks,kp,nage) 
+            end do
+          end do
+        end do
+
+        call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
+            /areanorth(0:numxgrid-1,0:numygrid-1,1:numzgrid)/loutstep,&
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+
+ ! South Flux
+        call nf90_err(nf90_def_var(ncid,'flux_south_'//anspec, nf90_float, dIDs, &
+             fluxID))
+
+        do jy=0,numygrid-1
+          do ix=0,numxgrid-1
+            do kz=1, numzgrid
+               grid(ix,jy,kz)=flux(3,ix,jy,kz,ks,kp,nage) 
+            end do
+          end do
+        end do
+
+        call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
+            /areanorth(0:numxgrid-1,0:numygrid-1,1:numzgrid)/loutstep,&
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+
+ ! Up Flux
+        call nf90_err(nf90_def_var(ncid,'flux_up_'//anspec, nf90_float, dIDs, &
+             fluxID))
+
+        do jy=0,numygrid-1
+          do ix=0,numxgrid-1
+            do kz=1, numzgrid
+               grid(ix,jy,kz)=flux(5,ix,jy,kz,ks,kp,nage)/area(ix,jy)
+            end do
+          end do
+        end do
+
+        call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
+            /loutstep,&
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+
+ ! Down Flux
+        call nf90_err(nf90_def_var(ncid,'flux_down_'//anspec, nf90_float, dIDs, &
+             fluxID))
+
+        do jy=0,numygrid-1
+          do ix=0,numxgrid-1
+            do kz=1, numzgrid
+               grid(ix,jy,kz)=flux(6,ix,jy,kz,ks,kp,nage)/area(ix,jy)
+            end do
+          end do
+        end do
+
+        call nf90_err(nf90_put_var(ncid,fluxid,1.e12*grid(0:numxgrid-1,0:numygrid-1,1:numzgrid)&
+            /loutstep,&
+           (/ 1,1,1,1,kp,nage /), (/ numxgrid,numygrid,numzgrid,1,1,1 /) ))
+
+      end do
+    end do
+  end do
+
+  ! Close netCDF file
+  call nf90_err(nf90_close(ncid))
+
+  ! Reinitialization of grid
+  !*************************
+
+  do ks=1,nspec
+    do kp=1,maxpointspec_act
+      do jy=0,numygrid-1
+        do ix=0,numxgrid-1
+          do kz=1,numzgrid
+            do nage=1,nageclass
+              do i=1,6
+                flux(i,ix,jy,kz,ks,kp,nage)=0.
+              end do
+            end do
+          end do
+        end do
+      end do
+    end do
+  end do
+
+
+end subroutine fluxoutput_netcdf
 
 end module netcdf_output_mod
 

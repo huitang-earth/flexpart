@@ -85,7 +85,7 @@ subroutine timemanager(metdata_format)
   use mpi_mod
 #ifdef USE_NCF
   use netcdf_output_mod, only: concoutput_netcdf,concoutput_nest_netcdf,&
-       &concoutput_surf_netcdf,concoutput_surf_nest_netcdf
+       &concoutput_surf_netcdf,concoutput_surf_nest_netcdf,fluxoutput_netcdf
 #endif
 
   implicit none

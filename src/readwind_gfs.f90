@@ -216,7 +216,8 @@ subroutine readwind_gfs(indj,n,uuh,vvh,wwh)
       isec1(6)=2           ! indicatorOfParameter
       isec1(7)=102         ! indicatorOfTypeOfLevel
       xsec18=real(0)
-    elseif ((parCat.eq.3).and.(parNum.eq.0).and.(typSurf.eq.1)) then ! SP
+   elseif ((parCat.eq.3).and.(parNum.eq.0).and.(typSurf.eq.1).and. &
+        (discipl.eq.0)) then ! SP
       isec1(6)=1           ! indicatorOfParameter
       isec1(7)=1           ! indicatorOfTypeOfLevel
       xsec18=real(0)
@@ -601,7 +602,8 @@ subroutine readwind_gfs(indj,n,uuh,vvh,wwh)
         temp=tth(i,j,k,n)
         if (temp .eq. 0.0) then 
           write (*, *) i, j, k, n
-          temp = 273.0
+!          temp = 273.0
+          stop
         endif
         plev1=akm(k)+bkm(k)*ps(i,j,1,n)
         elev=ew(temp)*help/100.0

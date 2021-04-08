@@ -72,7 +72,7 @@ subroutine gridcheck_gfs
   integer :: gribVer,parCat,parNum,typSurf,valSurf,discipl
   !HSO  end
   integer :: ix,jy,i,ifn,ifield,j,k,iumax,iwmax,numskip
-  real :: sizesouth,sizenorth,xauxa,pint
+  real :: sizesouth,sizenorth,xauxa,pint,xsec18
   real :: akm_usort(nwzmax)
   real,parameter :: eps=spacing(2.0_4*360.0_4) 
 
@@ -148,6 +148,8 @@ subroutine gridcheck_gfs
   call grib_get_real4_array(igrib,'values',zsec4,iret)
   call grib_check(iret,gribFunction,gribErrorMsg)
 
+  xsec18 = real(isec1(8))
+
   else ! GRIB Edition 2
 
   !read the grib2 identifiers
@@ -167,19 +169,20 @@ subroutine gridcheck_gfs
   isec1(6)=-1
   isec1(7)=-1
   isec1(8)=-1
+  xsec18 = -1.0
   if ((parCat.eq.2).and.(parNum.eq.2).and.(typSurf.eq.100)) then ! U
     isec1(6)=33          ! indicatorOfParameter
     isec1(7)=100         ! indicatorOfTypeOfLevel
-    isec1(8)=valSurf/100 ! level, convert to hPa
+    xsec18=valSurf/100.0 ! level, convert to hPa
   elseif ((parCat.eq.3).and.(parNum.eq.5).and.(typSurf.eq.1)) then ! TOPO
     isec1(6)=7           ! indicatorOfParameter
     isec1(7)=1           ! indicatorOfTypeOfLevel
-    isec1(8)=0
+    xsec18=real(0)
   elseif ((parCat.eq.0).and.(parNum.eq.0).and.(typSurf.eq.1) &
        .and.(discipl.eq.2)) then ! LSM
     isec1(6)=81          ! indicatorOfParameter
     isec1(7)=1           ! indicatorOfTypeOfLevel
-    isec1(8)=0
+    xsec18=real(0)
   endif
 
   if (isec1(6).ne.-1) then
@@ -300,7 +303,7 @@ subroutine gridcheck_gfs
 
   if((isec1(6).eq.33).and.(isec1(7).eq.100)) then ! check for U wind
     iumax=iumax+1
-    pres(iumax)=real(isec1(8))*100.0
+    pres(iumax)=xsec18*100.0
   endif
 
 

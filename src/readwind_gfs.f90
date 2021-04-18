@@ -196,15 +196,15 @@ subroutine readwind_gfs(indj,n,uuh,vvh,wwh)
       isec1(6)=52          ! indicatorOfParameter
       isec1(7)=105         ! indicatorOfTypeOfLevel
       xsec18=real(2)
-    elseif ((parCat.eq.0).and.(parNum.eq.0).and.(typSurf.eq.103)) then ! T2
+    elseif ((parCat.eq.0).and.(parNum.eq.0).and.(typSurf.eq.103).and.(valSurf.eq.2)) then ! T2
       isec1(6)=11          ! indicatorOfParameter
       isec1(7)=105         ! indicatorOfTypeOfLevel
       xsec18=real(2)
-    elseif ((parCat.eq.2).and.(parNum.eq.2).and.(typSurf.eq.103)) then ! U10
+    elseif ((parCat.eq.2).and.(parNum.eq.2).and.(typSurf.eq.103).and.(valSurf.eq.10)) then ! U10
       isec1(6)=33          ! indicatorOfParameter
       isec1(7)=105         ! indicatorOfTypeOfLevel
       xsec18=real(10)
-    elseif ((parCat.eq.2).and.(parNum.eq.3).and.(typSurf.eq.103)) then ! V10
+    elseif ((parCat.eq.2).and.(parNum.eq.3).and.(typSurf.eq.103).and.(valSurf.eq.10)) then ! V10
       isec1(6)=34          ! indicatorOfParameter
       isec1(7)=105         ! indicatorOfTypeOfLevel
       xsec18=real(10)

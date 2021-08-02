@@ -50,23 +50,25 @@ subroutine releaseparticles(itime)
   integer :: nweeks,ndayofweek,nhour,jjjjmmdd,ihmmss,mm
   real(kind=dp) :: juldate,julmonday,jul,jullocal,juldiff
   real,parameter :: eps=nxmax/3.e5,eps2=1.e-6
-  integer :: mind2
+  integer :: mind2, numpartcount_mpi
 ! mind2        eso: pointer to 2nd windfield in memory
-
   integer :: idummy = -7
 !save idummy,xmasssave
 !data idummy/-7/,xmasssave/maxpoint*0./
 
   logical :: first_call=.true.
 
-! Use different seed for each process.
-!****************************************************************************
+! Use different random seed for each process
+!*******************************************
   if (first_call) then
     idummy=idummy+mp_seed
     first_call=.false.
   end if
 
   mind2=memind(2)
+
+! For mquasilag=1, assign unique particle ID across processes
+  numpartcount_mpi=mp_partid-mp_partgroup_np+1
 
 ! Determine the actual date and time in Greenwich (i.e., UTC + correction for daylight savings time)
 !*****************************************************************************
@@ -209,10 +211,12 @@ subroutine releaseparticles(itime)
             nclass(ipart)=min(int(ran1(idummy)*real(nclassunc))+1, &
                  nclassunc)
             numparticlecount=numparticlecount+1
+! Use a stride equal to number of processes for the MPI version
+            numpartcount_mpi=numpartcount_mpi+mp_partgroup_np
             if (mquasilag.eq.0) then
               npoint(ipart)=i
             else
-              npoint(ipart)=numparticlecount
+              npoint(ipart)=numpartcount_mpi
             endif
             idt(ipart)=mintime               ! first time step
             itra1(ipart)=itime

@@ -177,7 +177,7 @@ contains
 
     implicit none
 
-    integer :: i,j,s,addmaxpart=0
+    integer :: i,j,s
 
 ! Each process gets an ID (mp_pid) in the range 0,..,mp_np-1
     call MPI_INIT(mp_ierr)
@@ -485,7 +485,7 @@ contains
     implicit none
 
     integer,intent(in) :: num_part
-    integer :: i,jj, addone
+    integer :: i
 
 ! Exit if too many particles
     if (num_part.gt.maxpart_mpi) then
@@ -588,8 +588,7 @@ contains
     
     integer, intent(in) :: itime
     real :: pmin,z
-    integer :: i,jj,nn, num_part=1,m,imin, num_trans
-    logical :: first_iter
+    integer :: i,jj,nn,m,imin, num_trans
     integer,allocatable,dimension(:) :: idx_arr
     real,allocatable,dimension(:) :: sorted ! TODO: we don't really need this
 
@@ -612,8 +611,8 @@ contains
       idx_arr(i) = i
     end do
 
-! Do not rebalance particles for ipout=3    
-    if (ipout.eq.3) return
+! Do not rebalance particles for ipout=3 or mquasilag=1
+    if ((ipout.eq.3).or.(mquasilag.eq.1)) return
 
 ! For each successive element in index array, see if a lower value exists
     do i=0, mp_partgroup_np-2

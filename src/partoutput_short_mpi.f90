@@ -12,8 +12,8 @@ subroutine partoutput_short(itime)
   !     12 March 1999                                                          *
   !                                                                            *
   !     12/2014 eso: Version for MPI                                           *
-  !                  Processes sequentially access and append data to file     *
-  !                  NB: Do not use yet!                                       *
+  !                  Particle positions are sent to root process for output    *
+  !                                                                            *
   !*****************************************************************************
   !                                                                            *
   ! Variables:                                                                 *
@@ -27,17 +27,26 @@ subroutine partoutput_short(itime)
   implicit none
 
   real(kind=dp) :: jul
-  integer :: itime,i,j,jjjjmmdd,ihmmss,numshortout,numshortall
+  integer, dimension(:), allocatable :: numshorts,displs
+  integer :: itime,i,j,jjjjmmdd,ihmmss,numshortout,numshortall,numshortmpi
   integer :: ix,jy,ixp,jyp
   real :: xlon,ylat,zlim,dt1,dt2,dtt,ddx,ddy,rddx,rddy,p1,p2,p3,p4,topo
   character :: adate*8,atime*6
 
   integer(kind=2) :: idump(3,maxpart)
   integer :: i4dump(maxpart)
-  character(LEN=8) :: file_stat='OLD'
+  integer(kind=2),dimension(:,:),allocatable :: idump_all(:,:)
+  integer,dimension(:), allocatable :: i4dump_all(:)
+!  character(LEN=8) :: file_stat='OLD'
+  character(LEN=8) :: file_stat='REPLACE'
 
-  ! MPI root process creates the file, other processes append to it
-  if (lroot) file_stat='REPLACE'
+! This is not needed, in this version only root process writes the file
+  ! if (lroot) then
+  !   file_stat='REPLACE'
+  ! end if
+
+! Array to gather numshortout from all processes
+  allocate(numshorts(mp_partgroup_np), displs(mp_partgroup_np))
 
   ! Determine current calendar date, needed for the file name
   !**********************************************************
@@ -114,30 +123,46 @@ subroutine partoutput_short(itime)
         idump(3,numshortout)=nint(zlim)
         i4dump(numshortout)=npoint(i)
       endif
-
     endif
   end do
 
 
+  
+! Get total number of particles from all processes
+!************************************************
+  call MPI_Allgather(numshortout, 1, MPI_INTEGER, numshorts, 1, MPI_INTEGER, &
+       mp_comm_used, mp_ierr)
+  
+  numshortmpi = sum(numshorts(:))
+
+
+! Gather all data at root process
+!********************************
+  allocate(idump_all(3,numshortmpi), i4dump_all(numshortmpi))
+  displs(1)=0
+  do i=2,mp_partgroup_np
+    displs(i)=displs(i-1)+numshorts(i-1)
+  end do
+
+  call MPI_gatherv(i4dump, numshortout, MPI_INTEGER, i4dump_all, numshorts(:), &
+       & displs, MPI_INTEGER, id_root, mp_comm_used, mp_ierr)
+  displs = displs*3  
+  call MPI_gatherv(idump, 3*numshortout, MPI_INTEGER2, idump_all, 3*numshorts(:), &
+       & displs, MPI_INTEGER2, id_root, mp_comm_used, mp_ierr)
+  
   ! Open output file and write the output
   !**************************************
 
-  open(unitshortpart,file=path(2)(1:length(2))//'shortposit_'//adate// &
-       atime,form='unformatted',status=file_stat,position='append')
+  if (lroot) then ! MPI root process only
+    open(unitshortpart,file=path(2)(1:length(2))//'shortposit_'//adate// &
+         atime,form='unformatted',status=file_stat,position='append')
+    write(unitshortpart) itime 
+    write(unitshortpart) numshortmpi
+    write(unitshortpart) &
+           (i4dump_all(i),(idump_all(j,i),j=1,3),i=1,numshortmpi)
+    close(unitshortpart)
+  end if
 
-  ! Write current time to file
-  !***************************
-
-  if (lroot) write(unitshortpart) itime ! MPI root process only
-  ! :TODO: get total numshortout (MPI reduction), add MPI barrier, open file
-  ! sequentially below
-  write(unitshortpart) numshortout 
-  write(unitshortpart) &
-       (i4dump(i),(idump(j,i),j=1,3),i=1,numshortout)
-
-
-  write(*,*) numshortout,numshortall
-
-  close(unitshortpart)
+  deallocate(idump_all, i4dump_all)
 
 end subroutine partoutput_short

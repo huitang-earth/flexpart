@@ -89,7 +89,7 @@ VPATH = gributils/
 
 ## OPTIMIZATION LEVEL
 O_LEV = 2 # [0,1,2,3,g,s,fast]
-O_LEV_DBG = g # [0,g]
+O_LEV_DBG = 0 # [0,g]
 
 ## LIBRARIES
 LIBS = -leccodes -leccodes_f90 -lm  $(NCOPT)
@@ -99,7 +99,7 @@ FFLAGS   = -I$(INCPATH1) -I$(INCPATH2) -O$(O_LEV) -g -cpp -m64 -mcmodel=medium -
 DBGFLAGS = -I$(INCPATH1) -I$(INCPATH2) -O$(O_LEV_DBG) -g3 -ggdb3 -cpp -m64 -mcmodel=medium -fconvert=little-endian -frecord-marker=4 -fmessage-length=0 -flto=jobserver -O$(O_LEV_DBG) $(NCOPT) -fbacktrace   -Wall  -fdump-core $(FUSER)  #  -ffpe-trap=invalid,overflow,denormal,underflow,zero  -Warray-bounds -fcheck=all
 
 LDFLAGS  = $(FFLAGS) -L$(LIBPATH1) -Wl,-rpath,$(LIBPATH1) $(LIBS) #-L$(LIBPATH2)
-LDDEBUG  = $(DBGFLAGS) -L$(LIBPATH1) $(LIBS) #-L$(LIBPATH2)
+LDDEBUG  = $(DBGFLAGS) -L$(LIBPATH1) -Wl,-rpath,$(LIBPATH1) $(LIBS) #-L$(LIBPATH2)
 
 MODOBJS = \
 par_mod.o    		com_mod.o \

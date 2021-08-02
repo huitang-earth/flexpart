@@ -447,10 +447,8 @@ subroutine timemanager(metdata_format)
 
       endif
 
-! :TODO: MPI output of particle positions;  each process sequentially
-!   access the same file
       if ((mquasilag.eq.1).and.(itime.eq.(loutstart+loutend)/2)) &
-           call partoutput_short(itime)    ! dump particle positions in extremely compressed format
+           call partoutput_short(itime) ! dump particle positions in extremely compressed format
 
 
 ! Output and reinitialization of grid
@@ -556,7 +554,9 @@ subroutine timemanager(metdata_format)
         endif
         if ((iout.eq.4).or.(iout.eq.5)) call plumetraj(itime)
         if ((iflux.eq.1).and.(lnetcdfout.eq.0)) call fluxoutput(itime)
+#ifdef USE_NCF
         if ((iflux.eq.1).and.(lnetcdfout.eq.1)) call fluxoutput_netcdf(itime)
+#endif
         if (mp_measure_time) call mpif_mtime('iotime',1)
 
 

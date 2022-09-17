@@ -143,12 +143,13 @@ module par_mod
 !   integer,parameter :: nxmax=361,nymax=181,nuvzmax=138,nwzmax=138,nzmax=138,nxshift=359 ! 1.0 degree 138 level
 ! integer,parameter :: nxmax=721,nymax=361,nuvzmax=138,nwzmax=138,nzmax=138,nxshift=359  ! 0.5 degree 138 level
 !  integer,parameter :: nxmax=181,nymax=91,nuvzmax=92,nwzmax=92,nzmax=92,nxshift=0  ! CERA 2.0 degree 92 level
-
+   integer,parameter :: nxmax=501,nymax=234,nuvzmax=138,nwzmax=138,nzmax=138,nxshift=0 ! ERA5 0.3 degree 138 level
+!   integer,parameter :: nxmax=539,nymax=249,nuvzmax=138,nwzmax=138,nzmax=138,nxshift=0 ! ERA5 0.28125 degree 138 level
 ! GFS
-   integer,parameter :: nxmax=361,nymax=181,nuvzmax=138,nwzmax=138,nzmax=138
+!   integer,parameter :: nxmax=361,nymax=181,nuvzmax=138,nwzmax=138,nzmax=138
   ! GFS 0.25
   ! integer,parameter :: nxmax=1441,nymax=721,nuvzmax=138,nwzmax=138,nzmax=138
-  integer :: nxshift=0 ! shift not fixed for the executable 
+!  integer :: nxshift=0 ! shift not fixed for the executable 
 
 
   !*********************************************

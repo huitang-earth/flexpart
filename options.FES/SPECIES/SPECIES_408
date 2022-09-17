@@ -1,0 +1,28 @@
+****************************************************************************
+*                                                                          *
+*     Input file for the Lagrangian particle dispersion model FLEXPART     *
+*               Definition file of chemical species/radionuclides          *
+*     This file is on the format required by version 10 (05/2015)          *
+****************************************************************************
+&SPECIES_PARAMS
+ PSPECIES="DUST-408",            ! Tracer name
+ PDECAY=-999.9,                 ! Species half life
+ PWETA_GAS=-9.9,           ! Below-cloud scavenging (gases) - A (weta_gas)
+ PWETB_GAS=-9.9,              ! Below-cloud scavenging (gases) - B (wetb_gas)
+ PCRAIN_AERO=1.0,            ! Below-cloud scavenging (particles) - Crain (crain_aero)
+ PCSNOW_AERO=1.0,            ! Below-cloud scavenging (particles) - Csnow (csnow_aero)
+ PCCN_AERO=0.3,              ! In-cloud scavenging (particles) - CCNeff (ccn_aero)
+ PIN_AERO=0.02,               ! In-cloud scavenging (particles) - INeff (in_aero)
+ PDENSITY=2.5e3,            ! Dry deposition (particles) - rho
+ PDQUER=8.63e-6,                 ! Dry deposition (particles) - dquer, for range 0.04 to 0.1 micrometer
+ PDSIGMA=1.15E00,                ! Dry deposition (particles) - dsig
+ PDRYVEL=-9.99,                ! Alternative: dry deposition velocity
+ PRELDIFF=-9.9,                ! Dry deposition (gases) - D
+ PHENRY=1.0E-9,               ! Dry deposition (gases) - Henrys const.
+ PF0=-9.99,                       ! Dry deposition (gases) - f0 (reactivity)
+ PWEIGHTMOLAR=-9.99,           ! molweight
+ POHCCONST=-9.99E-09,           ! OH Reaction rate - C [cm^3/molecule/sec]
+ POHDCONST=-9.9,              ! OH Reaction rate - D [K]
+ POHNCONST=-9.9,               ! OH Reaction rate -  N (no unit)
+ /
+

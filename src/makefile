@@ -62,11 +62,12 @@ ifeq ($(gcc), 4.9)
 	LIBPATH1 = ${ROOT_DIR}/lib
 else 
 # Using system installed libraries at njord.nilu.no
-	F90	  = /usr/bin/gfortran
-	MPIF90    = /usr/bin/mpifort
-	LIBPATH1 = /opt/eccodes/lib
-	INCPATH1  = /opt/eccodes/include
-	INCPATH2  = /usr/include
+	F90	  = ifort
+	MPIF90    = mpiifort
+	LIBPATH1 = ${EBROOTNETCDFMINFORTRAN}/lib 
+        LIBPATH2 = /cluster/software/ecCodes/2.9.2-intel-2018b/lib 
+	INCPATH1  = ${EBROOTNETCDFMINFORTRAN}/include
+	INCPATH2  = /cluster/software/ecCodes/2.9.2-intel-2018b/include 
 
 
 # INCPATH1  = /usr/include	
@@ -98,8 +99,8 @@ FFLAGS   = -I$(INCPATH1) -I$(INCPATH2) -O$(O_LEV) -g -cpp -m64 -mcmodel=medium -
 
 DBGFLAGS = -I$(INCPATH1) -I$(INCPATH2) -O$(O_LEV_DBG) -g3 -ggdb3 -cpp -m64 -mcmodel=medium -fconvert=little-endian -frecord-marker=4 -fmessage-length=0 -flto=jobserver -O$(O_LEV_DBG) $(NCOPT) -fbacktrace   -Wall  -fdump-core $(FUSER)  #  -ffpe-trap=invalid,overflow,denormal,underflow,zero  -Warray-bounds -fcheck=all
 
-LDFLAGS  = $(FFLAGS) -L$(LIBPATH1) -Wl,-rpath,$(LIBPATH1) $(LIBS) #-L$(LIBPATH2)
-LDDEBUG  = $(DBGFLAGS) -L$(LIBPATH1) -Wl,-rpath,$(LIBPATH1) $(LIBS) #-L$(LIBPATH2)
+LDFLAGS  = $(FFLAGS) -L$(LIBPATH1) -L$(LIBPATH2) $(LIBS) #-Wl,-rpath,$(LIBS) 
+LDDEBUG  = $(DBGFLAGS) $(LIBS) -L$(LIBPATH1) -L$(LIBPATH2)
 
 MODOBJS = \
 par_mod.o    		com_mod.o \

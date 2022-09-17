@@ -1,0 +1,65 @@
+
+
+
+
+
+&RECEPTORS
+ RECEPTOR="SACOL",
+ LON     =   104.136,
+ LAT     =    35.945,
+ /
+&RECEPTORS
+ RECEPTOR="SACOL",
+ LON     =   104.136,
+ LAT     =    35.945,
+ /
+&RECEPTORS
+ RECEPTOR="Yinchuan",
+ LON     =   106.104,
+ LAT     =    38.497,
+ /
+&RECEPTORS
+ RECEPTOR="TOYAMA",
+ LON     =   137.19,
+ LAT     =    36.7,
+ /
+&RECEPTORS
+ RECEPTOR="TOTTORI",
+ LON     =   134.21,
+ LAT     =    35.54,
+ /
+&RECEPTORS
+ RECEPTOR="FUKUOKA",
+ LON     =   130.36,
+ LAT     =    33.55,
+ /
+&RECEPTORS
+ RECEPTOR="HEDO",
+ LON     =   128.25,
+ LAT     =    26.86,
+ /
+&RECEPTORS
+ RECEPTOR="LINGTAI",
+ LON     =   107.789,
+ LAT     =    35.065,
+ /
+&RECEPTORS
+ RECEPTOR="BAODE",
+ LON     =   111.170,
+ LAT     =    39.003,
+ /
+&RECEPTORS
+ RECEPTOR="LUOCHUAN",
+ LON     =   109.424,
+ LAT     =    35.710,
+ /
+&RECEPTORS
+ RECEPTOR="LANTIAN",
+ LON     =   109.256,
+ LAT     =    34.180,
+ /
+&RECEPTORS
+ RECEPTOR="SHAPOTOU",
+ LON     =   105.0475,
+ LAT     =    37.749,
+ /
